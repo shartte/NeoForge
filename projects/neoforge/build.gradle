@@ -283,23 +283,42 @@ configurations {
         // Publish it
         javaComponent.addVariantsFromConfiguration(it) {}
     }
+    changelog {
+        canBeResolved = false
+        canBeConsumed = true
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
+            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, "changelog"))
+        }
+        // Publish it, but only for release versions
+        if (!rootProject.isPreReleaseVersion) {
+            javaComponent.addVariantsFromConfiguration(it) {}
+        }
+    }
 }
 
 afterEvaluate {
     artifacts {
         modDevBundle(userdevJar) {
+            setClassifier("userdev") // Legacy
         }
         modDevConfig(createUserdevJson.output) {
             builtBy(createUserdevJson)
+            setClassifier("moddev-config")
         }
         universalJar(signUniversalJar.output) {
             builtBy(signUniversalJar)
+            setClassifier("universal")
         }
         installerJar(signInstallerJar.output) {
             builtBy(signInstallerJar)
+            setClassifier("installer")
         }
-        installerJar(signInstallerJar.output) {
-            builtBy(signInstallerJar)
+        // Only publish a changelog for releases
+        changelog(rootProject.createChangelog.outputFile) {
+            builtBy(rootProject.createChangelog)
+            setClassifier("changelog")
+            setExtension("txt")
         }
     }
 }
@@ -311,11 +330,6 @@ publishing {
         version = project.version
 
         from components.java
-
-        if (!rootProject.isPreReleaseVersion) {
-            // Only publish a changelog for releases
-            changelog.publish(it)
-        }
 
         versionMapping {
             usage('java-api') {
