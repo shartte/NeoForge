@@ -195,8 +195,6 @@ tasks.withType(Javadoc.class).configureEach {
     options.addStringOption('Xdoclint:all,-missing', '-public')
 }
 
-tasks.withType(GenerateModuleMetadata).configureEach { enabled = false }
-
 configurations {
     forValidation {
         canBeConsumed = true
@@ -222,6 +220,90 @@ minecraft {
     modIdentifier 'minecraft'
 }
 
+AdhocComponentWithVariants javaComponent = (AdhocComponentWithVariants) project.components.findByName("java")
+// Ensure the two default variants are not published, since they
+// contain Minecraft classes
+javaComponent.withVariantsFromConfiguration(configurations.apiElements) {
+    it.skip()
+}
+javaComponent.withVariantsFromConfiguration(configurations.runtimeElements) {
+    it.skip()
+}
+
+interface DataType extends Named {
+    Attribute<DataType> DATA_TYPE_ATTRIBUTE = Attribute.of("net.neoforged.datatype", DataType.class);
+    String NEOFORGE_MODDEV_BUNDLE = "neoforge-moddev-bundle";
+    String NEOFORGE_MODDEV_CONFIG = "neoforge-moddev-config";
+}
+
+configurations {
+    modDevBundle {
+        canBeResolved = false
+        canBeConsumed = true
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "data"))
+            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
+            attribute(DataType.DATA_TYPE_ATTRIBUTE, objects.named(DataType, DataType.NEOFORGE_MODDEV_BUNDLE))
+        }
+        javaComponent.addVariantsFromConfiguration(it) {} // Publish it
+    }
+    modDevConfig {
+        canBeResolved = false
+        canBeConsumed = true
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "data"))
+            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
+            attribute(DataType.DATA_TYPE_ATTRIBUTE, objects.named(DataType, DataType.NEOFORGE_MODDEV_CONFIG))
+        }
+        javaComponent.addVariantsFromConfiguration(it) {} // Publish it
+    }
+    installerJar {
+        canBeResolved = false
+        canBeConsumed = true
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "installer"))
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.SHADOWED))
+            // The installer targets JDK 8
+            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 8)
+        }
+        // Publish it
+        javaComponent.addVariantsFromConfiguration(it) {}
+    }
+    universalJar {
+        canBeResolved = false
+        canBeConsumed = true
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
+            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, JavaVersion.current().majorVersion.toInteger())
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
+        }
+        // Publish it
+        javaComponent.addVariantsFromConfiguration(it) {}
+    }
+}
+
+afterEvaluate {
+    artifacts {
+        modDevBundle(userdevJar) {
+        }
+        modDevConfig(createUserdevJson.output) {
+            builtBy(createUserdevJson)
+        }
+        universalJar(signUniversalJar.output) {
+            builtBy(signUniversalJar)
+        }
+        installerJar(signInstallerJar.output) {
+            builtBy(signInstallerJar)
+        }
+        installerJar(signInstallerJar.output) {
+            builtBy(signInstallerJar)
+        }
+    }
+}
+
 publishing {
     publications.create('NeoForge', MavenPublication) {
         groupId = project.group
@@ -229,23 +311,6 @@ publishing {
         version = project.version
 
         from components.java
-
-        artifacts = []
-
-        afterEvaluate {
-            artifact (signUniversalJar.output) {
-                classifier 'universal'
-            }
-            artifact (signInstallerJar.output) {
-                classifier 'installer'
-            }
-            artifact (userdevJar) {
-                classifier 'userdev'
-            }
-            artifact (sourcesJar) {
-                classifier 'sources'
-            }
-        }
 
         if (!rootProject.isPreReleaseVersion) {
             // Only publish a changelog for releases
