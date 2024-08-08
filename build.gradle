@@ -25,17 +25,6 @@ allprojects {
     group 'net.neoforged'
     repositories {
         mavenLocal()
-        repositories {
-            maven {
-                name 'Maven for PR #190' // https://github.com/neoforged/FancyModLoader/pull/190
-                url 'https://prmaven.neoforged.net/FancyModLoader/pr190'
-                content {
-                    includeModule('net.neoforged.fancymodloader', 'earlydisplay')
-                    includeModule('net.neoforged.fancymodloader', 'junit-fml')
-                    includeModule('net.neoforged.fancymodloader', 'loader')
-                }
-            }
-        }
     }
 }
 
