@@ -144,6 +144,7 @@ import net.neoforged.neoforge.client.event.ClientPlayerChangeGameTypeEvent;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.ComputeFovModifierEvent;
+import net.neoforged.neoforge.client.event.ConfigureMainRenderTargetEvent;
 import net.neoforged.neoforge.client.event.CustomizeGuiOverlayEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.FrameGraphSetupEvent;
@@ -1098,5 +1099,11 @@ public class ClientHooks {
     @ApiStatus.Internal
     public static FrameGraphSetupEvent fireFrameGraphSetup(FrameGraphBuilder builder, LevelTargetBundle targets, RenderTargetDescriptor renderTargetDescriptor, Frustum frustum, Camera camera, Matrix4f modelViewMatrix, Matrix4f projectionMatrix, DeltaTracker deltaTracker, ProfilerFiller profiler) {
         return NeoForge.EVENT_BUS.post(new FrameGraphSetupEvent(builder, targets, renderTargetDescriptor, frustum, camera, modelViewMatrix, projectionMatrix, deltaTracker, profiler));
+    }
+
+    public static ConfigureMainRenderTargetEvent configureMainRenderTarget() {
+        var e = new ConfigureMainRenderTargetEvent();
+        ModLoader.postEvent(e);
+        return e;
     }
 }
