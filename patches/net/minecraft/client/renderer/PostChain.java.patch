@@ -1,5 +1,14 @@
 --- a/net/minecraft/client/renderer/PostChain.java
 +++ b/net/minecraft/client/renderer/PostChain.java
+@@ -17,6 +_,8 @@
+ import java.util.stream.Collectors;
+ import java.util.stream.Stream;
+ import javax.annotation.Nullable;
++
++import net.minecraft.client.renderer.PostPass.TargetInput.BufferType;
+ import net.minecraft.client.renderer.texture.AbstractTexture;
+ import net.minecraft.client.renderer.texture.TextureManager;
+ import net.minecraft.resources.ResourceLocation;
 @@ -79,8 +_,8 @@
                      abstracttexture.setFilter(flag, false);
                      postpass.addInput(new PostPass.TextureInput(s3, abstracttexture, i, j));
@@ -7,7 +16,7 @@
 -                case PostChainConfig.TargetInput(String s1, ResourceLocation resourcelocation1, boolean flag1, boolean flag2):
 -                    postpass.addInput(new PostPass.TargetInput(s1, resourcelocation1, flag1, flag2));
 +                case PostChainConfig.TargetInput(String s1, ResourceLocation resourcelocation1, boolean flag1, boolean flag2, boolean useStencilBuffer):
-+                    postpass.addInput(new PostPass.TargetInput(s1, resourcelocation1, flag1, flag2, useStencilBuffer));
++                    postpass.addInput(new PostPass.TargetInput(s1, resourcelocation1, BufferType.from(flag1, useStencilBuffer), flag2));
                      continue;
                  default:
                      throw new MatchException(null, null);
