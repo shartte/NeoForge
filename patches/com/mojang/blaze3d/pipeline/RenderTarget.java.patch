@@ -38,7 +38,7 @@
          this.unbindRead();
          this.unbindWrite();
 +        if (this.stencilBufferId > -1 && this.stencilBufferId != this.depthBufferId) {
-+            TextureUtil.releaseTextureId(this.stencilBufferId);;
++            TextureUtil.releaseTextureId(this.stencilBufferId);
 +            this.stencilBufferId = -1;
 +        }
 +
