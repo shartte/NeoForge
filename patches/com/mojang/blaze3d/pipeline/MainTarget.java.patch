@@ -13,3 +13,127 @@
          this.createFrameBuffer(p_166137_, p_166138_);
      }
  
+@@ -30,13 +_,24 @@
+         GlStateManager._texParameter(3553, 10242, 33071);
+         GlStateManager._texParameter(3553, 10243, 33071);
+         GlStateManager._glFramebufferTexture2D(36160, 36064, 3553, this.colorTextureId, 0);
+-        GlStateManager._bindTexture(this.depthBufferId);
+-        GlStateManager._texParameter(3553, 34892, 0);
+-        GlStateManager._texParameter(3553, 10241, 9728);
+-        GlStateManager._texParameter(3553, 10240, 9728);
+-        GlStateManager._texParameter(3553, 10242, 33071);
+-        GlStateManager._texParameter(3553, 10243, 33071);
+-        GlStateManager._glFramebufferTexture2D(36160, 36096, 3553, this.depthBufferId, 0);
++        if (this.useDepth) {
++            GlStateManager._bindTexture(this.depthBufferId);
++            GlStateManager._texParameter(3553, 34892, 0);
++            GlStateManager._texParameter(3553, 10241, 9728);
++            GlStateManager._texParameter(3553, 10240, 9728);
++            GlStateManager._texParameter(3553, 10242, 33071);
++            GlStateManager._texParameter(3553, 10243, 33071);
++            GlStateManager._glFramebufferTexture2D(36160, 36096, 3553, this.depthBufferId, 0);
++        }
++        if (this.useStencil) {
++            GlStateManager._bindTexture(this.stencilBufferId);
++            GlStateManager._texParameter(3553, 34892, 0);
++            GlStateManager._texParameter(3553, 10241, 9728);
++            GlStateManager._texParameter(3553, 10240, 9728);
++            GlStateManager._texParameter(3553, 10242, 33071);
++            GlStateManager._texParameter(3553, 10243, 33071);
++            GlStateManager._glFramebufferTexture2D(36160, org.lwjgl.opengl.GL32.GL_STENCIL_ATTACHMENT, 3553, this.stencilBufferId, 0);
++        }
+         GlStateManager._bindTexture(0);
+         this.viewWidth = maintarget$dimension.width;
+         this.viewHeight = maintarget$dimension.height;
+@@ -49,8 +_,14 @@
+     private MainTarget.Dimension allocateAttachments(int p_166147_, int p_166148_) {
+         RenderSystem.assertOnRenderThreadOrInit();
+         this.colorTextureId = TextureUtil.generateTextureId();
+-        this.depthBufferId = TextureUtil.generateTextureId();
++        if (this.useDepth) {
++            this.depthBufferId = TextureUtil.generateTextureId();
++        }
++        if (this.useStencil) {
++            this.stencilBufferId = this.useDepth ? this.depthBufferId : TextureUtil.generateTextureId();
++        }
+         MainTarget.AttachmentState maintarget$attachmentstate = MainTarget.AttachmentState.NONE;
++        MainTarget.AttachmentState targetState = MainTarget.AttachmentState.of(true, this.useDepth, this.useStencil);
+ 
+         for (MainTarget.Dimension maintarget$dimension : MainTarget.Dimension.listWithFallback(p_166147_, p_166148_)) {
+             maintarget$attachmentstate = MainTarget.AttachmentState.NONE;
+@@ -58,11 +_,19 @@
+                 maintarget$attachmentstate = maintarget$attachmentstate.with(MainTarget.AttachmentState.COLOR);
+             }
+ 
+-            if (this.allocateDepthAttachment(maintarget$dimension)) {
++            if (this.useDepth && this.useStencil && this.allocateDepthStencilAttachment(maintarget$dimension)) {
++                maintarget$attachmentstate = maintarget$attachmentstate.with(MainTarget.AttachmentState.DEPTH_STENCIL);
++            }
++
++            else if (this.useDepth && this.allocateDepthAttachment(maintarget$dimension)) {
+                 maintarget$attachmentstate = maintarget$attachmentstate.with(MainTarget.AttachmentState.DEPTH);
+             }
+ 
+-            if (maintarget$attachmentstate == MainTarget.AttachmentState.COLOR_DEPTH) {
++            else if (this.useStencil && this.allocateStencilAttachment(maintarget$dimension)) {
++                maintarget$attachmentstate = maintarget$attachmentstate.with(MainTarget.AttachmentState.STENCIL);
++            }
++
++            if (maintarget$attachmentstate == targetState) {
+                 return maintarget$dimension;
+             }
+         }
+@@ -86,17 +_,52 @@
+         return GlStateManager._getError() != 1285;
+     }
+ 
++    private boolean allocateStencilAttachment(MainTarget.Dimension p_166145_) {
++        RenderSystem.assertOnRenderThreadOrInit();
++        GlStateManager._getError();
++        GlStateManager._bindTexture(this.stencilBufferId);
++        GlStateManager._texImage2D(3553, 0, org.lwjgl.opengl.GL32.GL_STENCIL_INDEX8, p_166145_.width, p_166145_.height, 0, org.lwjgl.opengl.GL32.GL_STENCIL_INDEX, org.lwjgl.opengl.GL32.GL_BYTE, null);
++        return GlStateManager._getError() != 1285;
++    }
++
++    private boolean allocateDepthStencilAttachment(MainTarget.Dimension p_166145_) {
++        RenderSystem.assertOnRenderThreadOrInit();
++        GlStateManager._getError();
++        GlStateManager._bindTexture(this.depthBufferId);
++        GlStateManager._texImage2D(3553, 0, 6402, p_166145_.width, p_166145_.height, 0, org.lwjgl.opengl.GL32.GL_DEPTH_STENCIL, org.lwjgl.opengl.GL32.GL_UNSIGNED_INT_24_8, null);
++        return GlStateManager._getError() != 1285;
++    }
++
+     @OnlyIn(Dist.CLIENT)
+     static enum AttachmentState {
+         NONE,
+         COLOR,
+         DEPTH,
+-        COLOR_DEPTH;
++        COLOR_DEPTH,
++        STENCIL,
++        COLOR_STENCIL,
++        DEPTH_STENCIL,
++        COLOR_DEPTH_STENCIL;
+ 
+         private static final MainTarget.AttachmentState[] VALUES = values();
+ 
+         MainTarget.AttachmentState with(MainTarget.AttachmentState p_166164_) {
+             return VALUES[this.ordinal() | p_166164_.ordinal()];
++        }
++
++        static MainTarget.AttachmentState of(boolean color, boolean depth, boolean stencil) {
++            var result = NONE;
++            if (color) {
++                result = result.with(COLOR);
++            }
++            if (depth) {
++                result = result.with(DEPTH);
++            }
++            if (stencil) {
++                result = result.with(STENCIL);
++            }
++
++            return result;
+         }
+     }
+ 
