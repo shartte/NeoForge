@@ -1101,8 +1101,8 @@ public class ClientHooks {
         return NeoForge.EVENT_BUS.post(new FrameGraphSetupEvent(builder, targets, renderTargetDescriptor, frustum, camera, modelViewMatrix, projectionMatrix, deltaTracker, profiler));
     }
 
-    public static ConfigureMainRenderTargetEvent configureMainRenderTarget() {
-        var e = new ConfigureMainRenderTargetEvent();
+    public static ConfigureMainRenderTargetEvent configureMainRenderTarget(boolean useDepth, int width, int height) {
+        var e = new ConfigureMainRenderTargetEvent(useDepth, width, height);
         ModLoader.postEvent(e);
         return e;
     }

@@ -1,18 +1,20 @@
 --- a/com/mojang/blaze3d/pipeline/MainTarget.java
 +++ b/com/mojang/blaze3d/pipeline/MainTarget.java
-@@ -16,7 +_,11 @@
+@@ -16,8 +_,12 @@
      static final MainTarget.Dimension DEFAULT_DIMENSIONS = new MainTarget.Dimension(854, 480);
  
      public MainTarget(int p_166137_, int p_166138_) {
 -        super(true);
-+        this(net.neoforged.neoforge.client.ClientHooks.configureMainRenderTarget(), p_166137_, p_166138_);
+-        this.createFrameBuffer(p_166137_, p_166138_);
++        this(net.neoforged.neoforge.client.ClientHooks.configureMainRenderTarget(true, p_166137_, p_166138_));
 +    }
 +
-+    private MainTarget(net.neoforged.neoforge.client.event.ConfigureMainRenderTargetEvent e, int p_166137_, int p_166138_) {
++    private MainTarget(net.neoforged.neoforge.client.event.ConfigureMainRenderTargetEvent e) {
 +        super(e.useDepth(), e.useStencil());
-         this.createFrameBuffer(p_166137_, p_166138_);
++        this.createFrameBuffer(e.width(), e.height());
      }
  
+     private void createFrameBuffer(int p_166142_, int p_166143_) {
 @@ -30,13 +_,24 @@
          GlStateManager._texParameter(3553, 10242, 33071);
          GlStateManager._texParameter(3553, 10243, 33071);

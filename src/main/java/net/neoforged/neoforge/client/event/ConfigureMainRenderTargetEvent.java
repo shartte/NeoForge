@@ -23,13 +23,19 @@ import org.jetbrains.annotations.ApiStatus;
  * This event is fired on the mod-speciffic event bus, only on the {@linkplain LogicalSide#CLIENT logical client}.
  */
 public class ConfigureMainRenderTargetEvent extends Event implements IModBusEvent {
-    private boolean useDepth;
+    private final boolean useDepth;
     private boolean useStencil;
 
+    private final int width;
+    private final int height;
+
     @ApiStatus.Internal
-    public ConfigureMainRenderTargetEvent() {
-        this.useDepth = true;
+    public ConfigureMainRenderTargetEvent(boolean useDepth, int width, int height) {
+        this.useDepth = useDepth;
         this.useStencil = false;
+
+        this.width = width;
+        this.height = height;
     }
 
     /**
@@ -51,13 +57,21 @@ public class ConfigureMainRenderTargetEvent extends Event implements IModBusEven
     }
 
     /**
-     * Enable the depth buffer for the main render target.
+     * Returns the preferred width of the framebuffer.
      *
-     * @return <code>this</code>, for method chaining.
+     * @return The width, in pixels, to attempt to use for the framebuffer.
      */
-    public ConfigureMainRenderTargetEvent enableDepth() {
-        this.useDepth = true;
-        return this;
+    public int width() {
+        return this.width;
+    }
+
+    /**
+     * Returns the preferred height of the framebuffer.
+     *
+     * @return The height, in pixels, to attempt to use for the framebuffer.
+     */
+    public int height() {
+        return this.height;
     }
 
     /**
