@@ -35,12 +35,15 @@
      }
  
      @OnlyIn(Dist.CLIENT)
-@@ -364,5 +_,8 @@
+@@ -363,6 +_,11 @@
+         @Override
          public String toString() {
              return this.name;
-         }
++        }
 +
 +        @Nullable
-+        public abstract ResourceDescriptor<T> getDescriptor();
++        public ResourceDescriptor<T> getDescriptor() {
++            return null;
+         }
      }
  }

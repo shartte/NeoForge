@@ -11,7 +11,7 @@
                      continue;
                  default:
                      throw new MatchException(null, null);
-@@ -95,17 +_,32 @@
+@@ -95,17 +_,33 @@
          Matrix4f matrix4f = new Matrix4f().setOrtho(0.0F, (float)p_361423_, 0.0F, (float)p_362735_, 0.1F, 1000.0F);
          Map<ResourceLocation, ResourceHandle<RenderTarget>> map = new HashMap<>(this.internalTargets.size() + this.externalTargets.size());
  
@@ -29,8 +29,9 @@
 +                    useDepth |= renderDescriptor.useDepth();
 +                    useStencil |= renderDescriptor.useStencil();
 +            } else {
-+                useDepth |= p_361871_.get(resourcelocation).get().useDepth;
-+                useStencil |= p_361871_.get(resourcelocation).get().useStencil;
++                var target = handle.get();
++                useDepth |= target.useDepth;
++                useStencil |= target.useStencil;
 +            }
          }
  
