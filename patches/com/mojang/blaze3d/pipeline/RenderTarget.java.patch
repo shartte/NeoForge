@@ -1,6 +1,6 @@
 --- a/com/mojang/blaze3d/pipeline/RenderTarget.java
 +++ b/com/mojang/blaze3d/pipeline/RenderTarget.java
-@@ -25,17 +_,31 @@
+@@ -25,17 +_,34 @@
      public int viewWidth;
      public int viewHeight;
      public final boolean useDepth;
@@ -17,6 +17,9 @@
 +        this(p_166199_, false);
 +    }
 +
++    /**
++     * @throws UnsupportedOperationException If a stencil-only render target is unsupported by the OpenGL driver.
++     */
 +    public RenderTarget(boolean useDepth, boolean useStencil) {
 +        this.useDepth = useDepth;
 +        this.useStencil = useStencil;
